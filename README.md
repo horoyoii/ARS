@@ -8,9 +8,10 @@
  2) the system should be integrated with UI.
  3) capacity to manage all the exception or error.
 
-설계방안 ;
+설계방안 :
 
-1. Data Structure 
+1. Data Structure <br>
+
   가. Circular singly Linked List : this list is for the reservation table. 
      1) it should be up-to-date.
      2) it has its own ADT(Insert, Delete, Show etc) 
