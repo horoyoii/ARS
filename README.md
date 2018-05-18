@@ -35,8 +35,17 @@
     나. 20 bidirectional routes<br>
     다. Maximum degree on each vertex : 4<br>
     라. The weight on routes : 100 - 1000km distances, 100 - 1000$ costs<br>
-    
-       
-       
+
+***
+1. 모든 경로 탐색
+
+
+2. 탐색된 모든 경로에 대한 각각의 경로의 cost 계산
+
+ A-B-C로 연결되어있다면  
+int HowMuch(int A, int B); 안에는
+정점 간 cost가 적힌 2차원 배열이 정의되어 있고
+return arr[A][B]을 한다.
+이를 A-B, B-C 두번 반복하여 나온 cost의 합을 반환한다.
  ***
  제한사항
