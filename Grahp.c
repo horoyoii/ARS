@@ -75,7 +75,6 @@ void DepthFirstSearch(graph_ptr pg, int startV) {
 					visitFlag = TRUE;
 					break;
 				}
-
 			}
 		}
 
@@ -85,9 +84,37 @@ void DepthFirstSearch(graph_ptr pg, int startV) {
 			else
 				visitV = StackPop(&stack);
 		}
-	
 	}
 
+}
+
+void BreadthFirstSearch(graph_ptr pg, int StartV) {
+	Queue queue; // 큐가 필요하다. 
+	int visitV = StartV;
+	int nextV;
+
+	QueueInit(&queue);
+
+	VisitVertex(pg, visitV);
+
+	while (LFirst(&(pg->adjList[visitV]), &nextV) == TRUE) {
+		// VisitV에서 갈수 있는 정점을 모두 큐에 담는다 .if , while로 나뉜 이유 LFirst, LNext의 메카니즘이 다르기 때문....
+		// 큐에 담기는 정점의 대상은 visitV 기준으로 방문된 정점들
+
+		//========================================
+		if (VisitVertex(pg, nextV) == TRUE)
+			Enqueue(&queue, nextV);
+		while (LNext(&(pg->adjList[visitV]), &nextV) == TRUE) {
+			if (VisitVertex(pg, nextV) == TRUE)
+				Enqueue(&queue, nextV);
+		}
+		//========================================
+		if (QisEmpty(&queue) == TRUE)
+			break;
+		else
+			visitV = Dequeue(&queue);
+	}
+	
 }
 
 

@@ -1,5 +1,6 @@
 #pragma once
 #include"LinkedList.h"
+#include"CircularQueue.h"
 enum {A, B, C, D, E, F, G, H, I, J};
 
 // 정점의 이름을 상수화....
@@ -26,3 +27,4 @@ void AddEdge(graph_ptr pg, int fromV, int toV);
 void ShowGraphStatus(graph_ptr pg);
 
 void DepthFirstSearch(graph_ptr pg, int startV);
+void BreadthFirstSearch(graph_ptr pg, int StartV);
