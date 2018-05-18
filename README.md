@@ -25,3 +25,6 @@
      
      2) using this graph, we should extract the fast route by DFS and BFS algorithm.
      
+        가) DFS 
+        
+        나) 
