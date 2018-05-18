@@ -9,8 +9,7 @@
  3) capacity to manage all the exception or error.
 
 설계방안 :
-
-1. Data Structure <br>
+## 1. Data Structure <br>
 
   가. Circular singly Linked List : this list is for the reservation table. 
     
@@ -31,7 +30,13 @@
      나) BFS
        - It needs CircularQueue.h
        
-       
+ ## 2. prerequisite <br>
+    가. 15 cities (a ~ o) <br>
+    나. 20 bidirectional routes<br>
+    다. Maximum degree on each vertex : 4<br>
+    라. The weight on routes : 100 - 1000km distances, 100 - 1000$ costs<br>
+    
+       
        
  ***
  제한사항
