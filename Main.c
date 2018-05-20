@@ -8,9 +8,10 @@
 #include<time.h>
 #include<conio.h>
 #include"Screen.h"
-#include"NodeADT.h"
+#include"RTLinkedList.h"
 #include<windows.h>
 #include"UI.h"
+#include"Graph.h"
 
 void gotoxy(int x, int y) {
 	COORD CursorPosition = { x,y };
@@ -21,19 +22,27 @@ void gotoxy(int x, int y) {
 #define RIGHT 77 
 #define UP 72 
 #define DOWN 80 
+#define BUFFER_SIZE 100
 
+// SeatLevel 정보
+typedef enum _SEATLEVEL{
+	FirstClass, Business, Economy
+}SeatLevel;
+
+// ReserveTable의 리스트를 가지는 Head 포인터
+RTnode_ptr ReserveTable_Head;
+// Graph의 리스트를 가지는 Head 포인터
+Graph Graph_Head;
 
 // 인터페이스 단계 구성
 typedef enum _STAGE {
-	MAIN, RECENTa, MOSTLY, RECENTp, FAVORITE, PLAYING, INSERTS, DELETES
-// 시작화면, 최근추가, 많이재생, 최근재생, 즐겨찾기, 재생중,   곡추가   , 곡삭제
+	MAIN, RESERVATION, CHECKandCANCEL, CHANGE, INFO, CHECKALL
+// 메인화면, 1)예약하기, 2) 확인및취소        3) 변경     4) 정보  5) 모든 예약현황
 }STAGE;
 STAGE Stage;
 
 
-char title[100];
-char artist[100];
-
+// 메인화면의 기본 UI
 void BasicUI() {
 	ScreenPrint(0, 0, "□□□□□□□□□□□□□□□□□□□□□");
 	for (int i = 1; i < 20; i++) {
@@ -42,80 +51,121 @@ void BasicUI() {
 	ScreenPrint(0, 20, "□□□□□□□□□□□□□□□□□□□□□");
 }
 
+// 메인화면
 void MainUI() {
 	ScreenPrint(4, 2, "1. 예약하기");
-	ScreenPrint(4, 3, "2. 예약확인하기");
-	ScreenPrint(4, 4, "3. 최단경로 검색");
-	ScreenPrint(4, 5, "4. 편도/왕복");
-	ScreenPrint(4, 6, "5. 이코노미 / 비지니스 / 일반");
-	ScreenPrint(4, 7, "6. 성인 / 아동 / 명수");
-	ScreenPrint(4, 8, "7. 잔여석");
+	ScreenPrint(4, 3, "2. 예약확인 및 취소");
+	ScreenPrint(4, 4, "3. 예약 변경");
+	ScreenPrint(4, 5, "4. 기본정보");
+	ScreenPrint(4, 6, "5. 모든 예약현황 확인");
 }
 int MoveBar;
 void SelectBAR(int Move) {
 	ScreenPrint(2, Move, "▶");
 }
 
-void RecentlyAddUI() {
-	ScreenPrint(2, 2, "예약하기");
-	ScreenPrint(2, 3, title);
-
-	ScreenPrint(2, 4, artist);
+void ScreenClearFunc() {
+	for (int i = 1; i < 20; i++) {
+		gotoxy(2, i); printf("                                       ");
+	}
 }
 
-void MostlyPlayUI() {
-	ScreenPrint(2, 2, "예약확인하기");
+//========================================================================
+// 입력 fucntion
+void ReservInput(char *StartPos, char *DestPos, char *id, SeatLevel *level) {
+	gotoxy(10, 5); fgets(StartPos, 2, stdin);
+	while (getchar() != '\n');
+	gotoxy(10, 6); fgets(DestPos, 2, stdin);
+	while (getchar() != '\n');
+	gotoxy(10, 7); scanf("%[^\n]", id);
+	while (getchar() != '\n');
+	gotoxy(15, 8); scanf("%d", &level);
+	while (getchar() != '\n');
 }
 
-void RecentlyPlayUI() {
-	ScreenPrint(2, 2, "최근에 재생한 곡 목록");
-}
+// 예약하기 UI
+void ReservationUI() {
+	char StartPos[2];
+	char DestPos[2];
+	char id[100];
+	SeatLevel level;
+	RTnode_ptr newNode;
 
-void FavoriteUI() {
-	ScreenPrint(2, 2, "즐겨찾기 목록");
-}
+	ScreenClearFunc();
+	gotoxy(2, 4); printf("예약하기");
+	gotoxy(2, 5); printf("출발지 : ");
+	gotoxy(2, 6); printf("도착지 : ");
+	gotoxy(2, 7); printf("ID : ");
+	gotoxy(2, 8); printf("Seat Level : ");
 
-void PlayingUI() {
-	ScreenPrint(2, 2, "재생 중");
-}
+	ReservInput(StartPos, DestPos, id, &level);
 
-void InsertUI() {
-	gotoxy(10, 5); printf("                           ");
-	gotoxy(11, 6); printf("                           ");
-	gotoxy(2, 4); printf("곡 추가");
-	gotoxy(2, 5); printf("곡명 : ");
-	gotoxy(2, 6); printf("가수명 : ");
-	gotoxy(10, 5); fgets(title,100, stdin);
-	gotoxy(11, 6); fgets(artist, 100, stdin);
-	fflush(stdin);
-	//LLInsert(title, artist); // 링크드 리스트에 추가하는 작업 수행
+	//newNode = SelectRoute(StartPos, DestPos, id, &level);
+	//RTInsert(ReserveTable_Head, newNode);
+	//ShowGraphStatus(&Graph_Head);
+	/*
 	if (1) {
-		gotoxy(5, 8); printf("곡 추가 완료!");
+		gotoxy(5, 10); printf("예약 완료!");
 	}
 	else
-		gotoxy(5, 8); printf("곡 추가 실패");
+		gotoxy(5, 11); printf("예약 실패");
+	*/
+	Sleep(15000);
+}
+
+//========================================================================
+
+
+// 2) 확인 및 취소 UI
+void CheckAndCancelUI() {
+	char id[100];
+	ScreenClearFunc();
+	gotoxy(2, 4); printf("예약확인 및 취소");
+	gotoxy(2, 5); printf("id 입력 : ");
+	gotoxy(12, 5); scanf("%[^\n]", id);
+	while (getchar() != '\n');
 	Sleep(1500);
 }
-void DeleteUI() {
-	gotoxy(10, 5); printf("                         ");
-	gotoxy(11, 6); printf("                         ");
-	gotoxy(2, 4); printf("곡 삭제");
-	gotoxy(2, 5); printf("곡명 : ");
-	gotoxy(2, 6); printf("가수명 : ");
-	gotoxy(10, 5); fgets(title, 100, stdin);
-	gotoxy(11, 6); fgets(artist, 100, stdin);
-	fflush(stdin);
-	//LLDelete(title, artist); // 링크드 리스트에 삭제하는 작업 수행
-	if (1) {
-		gotoxy(5, 8); printf("곡 삭제 완료!");
-	}
-	else
-		gotoxy(5, 8); printf("곡 삭제 실패");
+
+// 3) 변경 UI
+void ChangeUI() {
+	char id[100];
+	ScreenClearFunc();
+	gotoxy(2, 4); printf("예약 변경");
+	gotoxy(2, 5); printf("id 입력 : ");
+	gotoxy(12, 5); scanf("%[^\n]", id);
+	while (getchar() != '\n');
 	Sleep(1500);
 }
-void init() {
+
+// 4) 기본정보 UI
+void InfoUI() {
+	// 가격표 등등을 출력해주는 함수
+	ScreenPrint(4, 4, "가격표 등등");
+}
+
+// 5) 모든 예약현황 확인 UI
+void CheckAllUI() {
+	// 저장된 모든 예약현황 출력
+	ScreenPrint(4, 4, "All the Resev Info");
+}
+
+void init() { // 시스템 초기화 단계
 	Stage = MAIN;
 	MoveBar = 2;
+	// 그래프 초기화 =========================================
+	GraphInit(&Graph_Head, 15); 
+	AddEdge(&Graph_Head, a,b); AddEdge(&Graph_Head, a,c);
+	AddEdge(&Graph_Head, a,o); AddEdge(&Graph_Head, b,g);
+	AddEdge(&Graph_Head, c,d); AddEdge(&Graph_Head, c,l);
+	AddEdge(&Graph_Head, b,e); AddEdge(&Graph_Head, o,l);
+	AddEdge(&Graph_Head, l,d); AddEdge(&Graph_Head, d,e);
+	AddEdge(&Graph_Head, d,k); AddEdge(&Graph_Head, e,f);
+	AddEdge(&Graph_Head, f,h); AddEdge(&Graph_Head, f,i);
+	AddEdge(&Graph_Head, i, h); AddEdge(&Graph_Head, i, n);
+	AddEdge(&Graph_Head, k, j); AddEdge(&Graph_Head, k ,m);
+	AddEdge(&Graph_Head, m, n); AddEdge(&Graph_Head, j, n);
+	// ====================================================
 }
 
 void Update() {
@@ -125,31 +175,23 @@ void Update() {
 void Render() {
 
 	ScreenClear();
-	//출력코드
 	BasicUI();
 	switch (Stage) {
 	case MAIN:
 		MainUI();
 		SelectBAR(MoveBar);
 		break;
-	case RECENTa:
-		RecentlyAddUI();
+	case RESERVATION:
 		break;
-	case MOSTLY:
-		MostlyPlayUI();
+	case CHECKandCANCEL:
 		break;
-	case RECENTp:
-		RecentlyPlayUI();
+	case CHANGE:
 		break;
-	case FAVORITE:
-		FavoriteUI();
+	case INFO:
+		InfoUI();
 		break;
-	case PLAYING:
-		PlayingUI();
-		break;
-	case INSERTS:
-		break;
-	case DELETES:
+	case CHECKALL:
+		CheckAllUI();
 		break;
 	}
 
@@ -167,28 +209,31 @@ int main(void) {
 	int nKey;
 	while (1) {
 		switch (Stage) {
-		case INSERTS:
+		case RESERVATION:
 			ScreenRelease(); // 입력을 받기 위한 screen release
-			InsertUI();
+			ReservationUI();
 			Stage = MAIN;
 			ScreenInit(); // Screen restart
 			break;
-		case DELETES:
+		case CHECKandCANCEL:
 			ScreenRelease(); // 입력을 받기 위한 screen release
-			DeleteUI();
+			CheckAndCancelUI();
 			Stage = MAIN;
 			ScreenInit(); // Screen restart
 			break;
-		case PLAYING:
-			// 다음곡 재생, 전곡 재생, 즐겨찾기 추가, 뒤로가기 등등
+		case CHANGE:
+			ScreenRelease(); // 입력을 받기 위한 screen release
+			ChangeUI();
+			Stage = MAIN;
+			ScreenInit(); // Screen restart
 			break;
 		default: // MAIN 화면
 			if (_kbhit()) {
 				nKey = _getch();
-				if (nKey == 13) { // enter 입력시
+				if (nKey == 13) { // Main화면에서 enter 입력시 MoveBar가 가르키고 있는 Stage로 진입
 					Stage = MoveBar - 1;
 				}
-				if (nKey == 224) {
+				if (nKey == 224) { // Main화면에서 방향키를 통해 MoveBar를 움직이는 역할
 					nKey = _getch();
 					switch (nKey) {
 					case UP:
@@ -214,3 +259,35 @@ int main(void) {
 	ScreenRelease();
 	return 0;
 }
+
+
+// reservation table [ circular singly linked list ]
+/*
+typedef struct _ROUTE *RouteNode_ptr;
+typedef struct _ROUTE {
+
+}Route;
+
+typedef struct _RT_NODE *RTnode_ptr;
+
+enum { FirstClass, Business, Economy };
+typedef struct _RT_NODE {
+	char id[30];
+	char StartPos;
+	char DestPos;
+	RouteNode_ptr ReservedRoute;
+	int SeatLevel;
+	int Cost;
+	int  Distance;
+	int TravelTime;
+}RTNode;
+
+
+RTnode_ptr ReserveTable_Head;
+*/
+// 예약하기 
+
+
+
+
+
