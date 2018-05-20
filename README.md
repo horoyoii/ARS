@@ -8,7 +8,7 @@
  2) the system should be integrated with UI.
  3) capacity to manage all the exception or error.
 
-설계방안 :
+설계방안 : 
 ## 1. Data Structure <br>
 
   가. Circular singly Linked List : this list is for the reservation table. 
@@ -39,10 +39,19 @@
  ## 3. Modularity <br>
     1)  Graph with Linked List
       - Graph.h 
-        - gLinkedList.h [Graph 구현용 LinkedLIst ADT] 
-        - gStack.h      [DFS 구현용 Stack ADT ]
-        - SelectRotues.h [DFS로 탐색된 모든 경로를 묶어서 반환하는 LinkedList ADT]
+        - gLinkedList.h [Graph 구현용 LinkedLIst ADT] <br>
+        - gStack.h      [DFS 구현용 Stack ADT ] <br>
+        - SelectRotues.h [DFS로 탐색된 모든 경로를 묶어서 반환하는 LinkedList ADT] <br>
     
+
+ ## 4. DFS Implement
+    1) DFS로 탐색을 진행하되, 도착지점을 찾은 경우 
+      - 저장되어있는 스택의 값들을(시작지점-도착지점 간의 경로) Route_Node에 저장한다.
+    2) 이후 백트래킹으로 모든 경우의 경로를 탐색한다.
+    3) 모든 경로 탐색 완료 시 종료한다.
+    4) 반환값 : 시작지점-도착지점 간의 모든 경로가 저장된 노드들이 이어진 Route_head 가 반환된다.
+    5) Route_head를 대상으로 Display 및 Select의 
+
 
 ***
 1. 모든 경로 탐색
