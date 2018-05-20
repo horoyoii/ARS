@@ -4,15 +4,15 @@
 #include<memory.h>
 #include"gStack.h"
 #include"gLinkedList.h"
+#include"SelectRoutes.h"
+
 // 그래프 초기화
 void GraphInit(graph_ptr pg, int nv) {
 	pg->adjList = (glist_ptr)malloc(sizeof(struct _gLINKEDLIST)*nv); // 정점의 수만큼 링크드리스트를 생성한다. 이는 배열이다.
-	pg->visitInfo = (int*)malloc(sizeof(int)*nv); // 방문할 정점을 담을 배열 초기화
 	pg->numV = nv;
 	pg->numE = 0;
 	for (int i = 0; i < nv; i++) {
 		gListInit(&(pg->adjList[i])); // 정점수만큼 생성된 리스트를 초기화 _ 더미생성
-		memset(pg->visitInfo, 0, sizeof(int)*nv);
 	}
 }
 
@@ -33,63 +33,62 @@ void AddEdge(graph_ptr pg, int fromV, int toV) {
 void ShowGraphStatus(graph_ptr pg) {
 	int vx;
 	for (int i = 0; i < pg->numV; i++) {
-		printf("%c와 연결된 정점 : ", i + 65);
+		printf("%c와 연결된 정점 : ", i + 97);
 
 		if (gLFirst(&(pg->adjList[i]), &vx)) {
-			printf("%c ", vx + 65);
+			printf("%c ", vx + 97);
 
 			while (gLNext(&(pg->adjList[i]), &vx))
-				printf("%c ", vx + 65);
+				printf("%c ", vx + 97);
 		}
 		printf("\n");
 	}
 }
 
-int VisitVertex(graph_ptr pg, int visitV) {
-	if (pg->visitInfo[visitV] == 0) { // visitV vertex 의 방문이 처음이면...
-		pg->visitInfo[visitV] = 1;
-		printf("%c ", visitV + 65);
-		return TRUE;
+
+
+void RouteSave(gstack_ptr stack, Rnode_ptr *Rt, int GoalV) {
+	int *Route = (int*)malloc(sizeof(int)*((stack->top) + 2));
+	int tempTop = stack->top;
+	Route[(stack->top) + 1] = GoalV;
+	for (int i = stack->top; i>-1; i--) {
+		Route[i] = gStackPop(stack);
 	}
-	return FALSE;
+	stack->top = tempTop;
+
+	Rnode_ptr newNode = (Rnode_ptr)malloc(sizeof(Rnode));
+	newNode->Route = Route;
+	newNode->next = NULL;
+	RNodeInsert(Rt, newNode);
 }
 
-void DepthFirstSearch(graph_ptr pg, int startV) {
-	gStack stack;
-	int visitV = startV;
-	int nextV;
+// startV에서 GoalV까지 가는 모든 경로 찾기
+// 재귀적
+void DFS(graph_ptr pg, int visitV, int GoalV, gstack_ptr stack, int *CheckArr, Rnode_ptr *Rt) {
+	int nextV;				// 방문할 수 있는 정점 (연결된 정점)
 
-	gStackInit(&stack);
-	VisitVertex(pg, visitV); // 시작 정점을 방문
-	gStackPush(&stack, visitV); // 시작 정점을 푸쉬
+							//VisitVertex(pg, visitV); // 시작 정점을 방문 - 왔던 곳이면 0, 처음 온 곳이면 1을 반환 - 배열에 마킹
+							//gStackPush(stack, visitV); // 시작 정점을 푸쉬
+	CheckArr[visitV] = 1;
 
-	while (gLFirst(&(pg->adjList[visitV]), &nextV) == TRUE) { // 정점은 최소 하나의 요소를 가지고 있는지 확인, 그래프는 이를 전부 만족
-		int visitFlag = FALSE;
-
-		if (VisitVertex(pg, nextV) == TRUE) { // nextV 정점에 방문하였다면, (최초방문)
-			gStackPush(&stack, visitV);
-			visitV = nextV;
-			visitFlag = TRUE;
-		}
-		else { // 방문실패시 (이미 방문시), visitiV와 연결되 다른 정점을 탐색한다.
-			while (gLNext(&(pg->adjList[visitV]), &nextV) == TRUE) { // LNext함수가 정점의 linked list의 cur과 before을 움직여 나간다.
-				if (VisitVertex(pg, nextV) == TRUE) {// 방문가능한 nextV를 찾으면
-					gStackPush(&stack, visitV); // 경로를 남기고
-					visitV = nextV;
-					visitFlag = TRUE;
-					break;
-				}
-
-			}
-		}
-
-		if (visitFlag == FALSE) { // VisitV 정점에서 더 이상 방문할 수 있는 정점이 없다면 백트래킹 실시
-			if (gStackIsEmpty(&stack) == TRUE)
-				break;
-			else
-				visitV = gStackPop(&stack);
-		}
-
+	if (visitV == GoalV) { // 도착지 찾으면...
+						   //스택의 요소를 복사하여 링크드 리스트에 목록 저장
+		RouteSave(stack, Rt, GoalV);
+		CheckArr[visitV] = 0;
+		gStackPop(stack); // pop 
+		return;
 	}
 
+	gLFirst(&(pg->adjList[visitV]), &nextV); // 정점은 최소 하나의 요소를 가지고 있는지 확인, 그래프는 이를 전부 만족
+	do { // LNext함수가 정점의 linked list의 cur과 before을 움직여 나간다.
+
+		if (CheckArr[nextV] == 0) {// 방문가능한 nextV를 찾으면
+			gStackPush(stack, visitV); // 경로를 남기고
+			DFS(pg, nextV, GoalV, stack, CheckArr, Rt);
+		}
+
+	} while (gLNext(&(pg->adjList[visitV]), &nextV) == TRUE);
+
+	CheckArr[visitV] = 0;
+	gStackPop(stack);
 }

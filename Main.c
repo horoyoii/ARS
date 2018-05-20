@@ -12,17 +12,16 @@
 #include<windows.h>
 #include"UI.h"
 #include"Graph.h"
+#include"SelectRoutes.h"
+#include"gStack.h"
 
-void gotoxy(int x, int y) {
-	COORD CursorPosition = { x,y };
-	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), CursorPosition);
-}
 
 #define LEFT 75 
 #define RIGHT 77 
 #define UP 72 
 #define DOWN 80 
 #define BUFFER_SIZE 100
+
 
 // SeatLevel 정보
 typedef enum _SEATLEVEL{
@@ -64,11 +63,6 @@ void SelectBAR(int Move) {
 	ScreenPrint(2, Move, "▶");
 }
 
-void ScreenClearFunc() {
-	for (int i = 1; i < 20; i++) {
-		gotoxy(2, i); printf("                                       ");
-	}
-}
 
 //========================================================================
 // 입력 fucntion
@@ -85,11 +79,12 @@ void ReservInput(char *StartPos, char *DestPos, char *id, SeatLevel *level) {
 
 // 예약하기 UI
 void ReservationUI() {
-	char StartPos[2];
-	char DestPos[2];
+	char StartPosC[2];
+	char DestPosC[2];
 	char id[100];
+
 	SeatLevel level;
-	RTnode_ptr newNode;
+	RTnode_ptr newNode; // 시작지, 도착지, 선택된 경로, id, 비용, 거리, 가격 을 담고 있는 노드
 
 	ScreenClearFunc();
 	gotoxy(2, 4); printf("예약하기");
@@ -98,18 +93,30 @@ void ReservationUI() {
 	gotoxy(2, 7); printf("ID : ");
 	gotoxy(2, 8); printf("Seat Level : ");
 
-	ReservInput(StartPos, DestPos, id, &level);
+	ReservInput(StartPosC, DestPosC, id, &level); // 입력받기
+	// 형변환
+	int StartPos = StartPosC[0] - 97;
+	int DestPos = DestPosC[0] - 97;
 
-	//newNode = SelectRoute(StartPos, DestPos, id, &level);
-	//RTInsert(ReserveTable_Head, newNode);
+	gStack stack;
+	gStackInit(&stack);
+	int CheckArr[15] = { 0, };
 	//ShowGraphStatus(&Graph_Head);
-	/*
-	if (1) {
-		gotoxy(5, 10); printf("예약 완료!");
-	}
-	else
-		gotoxy(5, 11); printf("예약 실패");
-	*/
+	Rnode_ptr Route_head = NULL;
+
+	// 모든 경로 탐색 후 Route_head에 연결
+	DFS(&Graph_Head, StartPos, DestPos, &stack, CheckArr, &Route_head);
+
+	// 모든 경로 display
+	ShowAllRoutes(StartPos, DestPos, id, &DestPos, Route_head);
+
+	// 경로 하나 select
+
+
+
+
+
+
 	Sleep(15000);
 }
 
@@ -135,7 +142,7 @@ void ChangeUI() {
 	gotoxy(2, 5); printf("id 입력 : ");
 	gotoxy(12, 5); scanf("%[^\n]", id);
 	while (getchar() != '\n');
-	Sleep(1500);
+	Sleep(15000);
 }
 
 // 4) 기본정보 UI

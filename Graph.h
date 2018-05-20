@@ -1,5 +1,7 @@
 #pragma once
 #include"gLinkedList.h"
+#include"gStack.h"
+#include"SelectRoutes.h"
 enum { a, b, c, d, e, f, g, h, i, j, k, l, m, n, o };
 
 // 정점의 이름을 상수화....
@@ -10,7 +12,6 @@ typedef struct _GRAPH {
 	int numV; // 정점의 수
 	int numE; // 간선의 수
 	glist_ptr adjList; // 실질적으로 그래프의 정보가 저장되는 linked list
-	int *visitInfo; // DFS 시 방문한 정점의 정보를 담는 배열
 }Graph;
 
 // 그래프 초기화
@@ -25,4 +26,4 @@ void AddEdge(graph_ptr pg, int fromV, int toV);
 // 간선의 정보 출력
 void ShowGraphStatus(graph_ptr pg);
 
-void DepthFirstSearch(graph_ptr pg, int startV);
+void DFS(graph_ptr pg, int startV, int GoalV, gstack_ptr gStack, int *CheckArr, Rnode_ptr *ptr);
