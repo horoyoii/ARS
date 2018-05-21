@@ -37,11 +37,15 @@
     라. The weight on routes : 100 - 1000km distances, 100 - 1000$ costs<br>
     
  ## 3. Modularity <br>
-    1)  Graph with Linked List
-      - Graph.h 
+   1)  Graph with Linked List <br>
+    - Graph.h <br>
         - gLinkedList.h [Graph 구현용 LinkedLIst ADT] <br>
         - gStack.h      [DFS 구현용 Stack ADT ] <br>
         - SelectRotues.h [DFS로 탐색된 모든 경로를 묶어서 반환하는 LinkedList ADT] <br>
+        - 탐색된 경로는 1차원 배열에 순차적으로 저장된다.  <br>
+    - Weight Graph <br>
+        - 간선 간에 가중치를 부여한다. 가중치를 가지는 2차원 배열 정의<br>
+        - 이를 통하여 경로 간에 cost와 distance 계산 <br>
     
 
  ## 4. DFS Implement
