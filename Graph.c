@@ -14,6 +14,42 @@ void GraphInit(graph_ptr pg, int nv) {
 	for (int i = 0; i < nv; i++) {
 		gListInit(&(pg->adjList[i])); // 정점수만큼 생성된 리스트를 초기화 _ 더미생성
 	}
+
+	// 가중치 2차원 배열 생성
+	for (int i = 0; i < 15; i++) { // 1) 0으로 초기화
+		for (int j = 0; j < 15; j++) {
+			pg->Weight[i][j] = 0;
+		}
+	}
+
+	pg->Weight[0][1] = 1;
+	pg->Weight[0][2] = 1.2;
+	pg->Weight[0][14] = 7;
+	pg->Weight[1][6] = 2;
+	pg->Weight[1][4] = 1.7;
+	pg->Weight[2][3] = 2.4;
+	pg->Weight[2][11] = 2.6;
+	pg->Weight[3][4] = 2.5;
+	pg->Weight[3][10] = 2.7;
+	pg->Weight[3][11] = 3.1;
+	pg->Weight[4][5] = 2;
+	pg->Weight[5][7] = 3.2;
+	pg->Weight[5][8] = 3;
+	pg->Weight[7][8] = 2.8;
+	pg->Weight[8][13] = 4;
+	pg->Weight[9][10] = 4.5;
+	pg->Weight[9][13] = 5;
+	pg->Weight[10][12] = 3;
+	pg->Weight[11][14] = 4.1;
+	pg->Weight[12][13] = 4.8;
+	// 반대 복사하기
+	for (int i = 0; i < 15; i++) { 
+		for (int j = i; j < 15; j++) {
+			if (pg->Weight[i][j])
+				pg->Weight[j][i] = pg->Weight[i][j];
+		}
+	}
+	// 가중치 그래프 완성
 }
 
 // 그래프의 리소스 해제
@@ -91,4 +127,37 @@ void DFS(graph_ptr pg, int visitV, int GoalV, gstack_ptr stack, int *CheckArr, R
 
 	CheckArr[visitV] = 0;
 	gStackPop(stack);
+}
+
+
+// 경유 한 곳당 30분(0.5) 추가
+void AddCostDisTime(graph_ptr pg, Rnode_ptr *Route_head, int DestPos) {
+	Rnode_ptr temp  = *Route_head;
+	int i = 0;
+	double cost = 0;
+	double distance = 0;
+	double Time = 0;
+	int row;
+	int col;
+	while (temp != NULL) {
+		i = 0; cost = 0; distance = 0; Time = 0;
+		while (1) {
+			row = temp->Route[i];
+			col = temp->Route[i+1];
+			Time += pg->Weight[row][col] + 0.5; // 경유마다 30분 추가
+			cost += (pg->Weight[row][col])*100;
+			distance += cost;
+			if (temp->Route[i+1] == DestPos)
+				break;
+			i++;
+		}
+		temp->cost = cost;
+		temp->distance = distance;
+		temp->traveltime = Time;
+
+		temp = temp->next;
+	}
+
+
+
 }

@@ -11,6 +11,9 @@ typedef struct _ROUTENODE { // 탐색된 경로를 가지는 노드들, head point에 줄줄이 
 	int DestPos;
 	int level;
 	char id[100];
+	double cost;
+	double distance;
+	double traveltime;
 	Rnode_ptr next;
 }Rnode;
 

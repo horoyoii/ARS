@@ -12,6 +12,7 @@ typedef struct _GRAPH {
 	int numV; // 정점의 수
 	int numE; // 간선의 수
 	glist_ptr adjList; // 실질적으로 그래프의 정보가 저장되는 linked list
+	double Weight[15][15]; // 정점 간의 가중치를 가지는 2차원 배열
 }Graph;
 
 // 그래프 초기화
@@ -27,3 +28,4 @@ void AddEdge(graph_ptr pg, int fromV, int toV);
 void ShowGraphStatus(graph_ptr pg);
 
 void DFS(graph_ptr pg, int startV, int GoalV, gstack_ptr gStack, int *CheckArr, Rnode_ptr *ptr);
+void AddCostDisTime(graph_ptr pg, Rnode_ptr *Route_head, int DestPos);

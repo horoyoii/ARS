@@ -28,11 +28,12 @@ typedef enum _SEATLEVEL{
 	FirstClass, Business, Economy
 }SeatLevel;
 
+
 // ReserveTable의 리스트를 가지는 Head 포인터
 RTnode_ptr ReserveTable_Head;
 // Graph의 리스트를 가지는 Head 포인터
 Graph Graph_Head;
-// 탐색된 모든 경로를 가지고 있는 Head 포인터
+// 탐색된 모든 경로를 가지고 있는 Head 포인터 - 다 쓰고 나면 초기화해줘야 함
 Rnode_ptr Route_head = NULL;
 
 // 인터페이스 단계 구성
@@ -67,15 +68,19 @@ void SelectBAR(int Move) {
 
 
 //========================================================================
+// 그래프초기화
+
+
+
 // 입력 fucntion
 void ReservInput(char *StartPos, char *DestPos, char *id, SeatLevel *level) {
 	gotoxy(11, 5); fgets(StartPos, 2, stdin);
 	while (getchar() != '\n');
-	gotoxy(11, 6); fgets(DestPos, 2, stdin);
+	gotoxy(11, 7); fgets(DestPos, 2, stdin);
 	while (getchar() != '\n');
-	gotoxy(11, 7); scanf("%[^\n]", id);
+	gotoxy(11, 9); scanf("%[^\n]", id);
 	while (getchar() != '\n');
-	gotoxy(16, 8); scanf("%d", &level);
+	gotoxy(16, 13); scanf("%d", level);
 	while (getchar() != '\n');
 }
 
@@ -84,6 +89,8 @@ int GlobalStartPos;
 int GlobalDestPos;
 char Globalid[100];
 SeatLevel GlobalLevel;
+
+
 void ReservationUI() {
 	char StartPosC[2];
 	char DestPosC[2];
@@ -91,13 +98,13 @@ void ReservationUI() {
 
 	SeatLevel level;
 	RTnode_ptr newNode; // 시작지, 도착지, 선택된 경로, id, 비용, 거리, 가격 을 담고 있는 노드
-
 	ScreenClearFunc();
 	gotoxy(3, 1); printf("[예약하기] - "); textcolor(10); printf("[정보입력]"); textcolor(15); printf(" - [경로선택] - 확인 ");
 	gotoxy(3, 5); printf("출발지 : ");
-	gotoxy(3, 6); printf("도착지 : ");
-	gotoxy(3, 7); printf("ID : ");
-	gotoxy(3, 8); printf("Seat Level : ");
+	gotoxy(3, 7); printf("도착지 : ");
+	gotoxy(3, 9); printf("ID : ");
+	gotoxy(3, 13); printf("Seat Level : ");
+	gotoxy(3, 11); printf(" 0. FirstClass 1. Business 2. Economy");
 
 	ReservInput(StartPosC, DestPosC, id, &level); // 입력받기
 	// 형변환
@@ -112,26 +119,36 @@ void ReservationUI() {
 	int CheckArr[15] = { 0, };
 
 	//Rnode_ptr Route_head = NULL;
+	Route_head = NULL;
 
 	// 모든 경로 탐색 후 Route_head에 연결
 	DFS(&Graph_Head, StartPos, DestPos, &stack, CheckArr, &Route_head);
 
-	// 모든 경로 출력 & 선택 Display 로 넘어가기
+	// 모든 경로에 대한 cost, distance, travel time 추가
+	AddCostDisTime(&Graph_Head, &Route_head, DestPos);
 	
+	// 다음 시행을 위한 초기화
+	StartPosC[0] = 0;
+	StartPosC[1] = 0;
+	DestPosC[0] = 0;
+	DestPosC[1] = 0;
 
 	
 }
 
 void SelectUI() {
-	// 모든 경로 display
+	// 모든 경로 display - Route_head 가 가지고 있음.
 	ScreenClearFunc();
+	char *cSeatLevel[3] = { "FirstClass", "Business", "Economy" };
 	//gotoxy(3, 1); printf("[예약하기] - [정보입력] - [경로선택] - [확인] ");
 	gotoxy(3, 1); printf("[예약하기] - "); printf("[정보입력] - "); textcolor(10); printf("[경로선택]"); textcolor(15); printf(" - [확인]");
 	gotoxy(2, 3); printf("출발 : [ %c ]  도착 : [ %c ] ", GlobalStartPos+97, GlobalDestPos+97);
-	gotoxy(2, 4); printf("id : %s    등급 : %d ", Globalid, GlobalLevel);
-	gotoxy(2, 9); printf("경로"); gotoxy(40, 9); printf("가격           거리");
+	gotoxy(2, 4); printf("id : %s    등급 : %s ", Globalid, cSeatLevel[GlobalLevel]);
+	gotoxy(2, 9); printf("경로"); gotoxy(40, 9); printf("가격           거리              TravelTime");
+
 	gotoxy(0, 11);
 	int i = 0;
+	int y = 0;
 	int RouteNum = 1;
 	Rnode_ptr temp = Route_head;
 	while (temp != NULL) {
@@ -142,6 +159,10 @@ void SelectUI() {
 			if (temp->Route[i++] == GlobalDestPos)
 				break;
 		}
+		//gotoxy(40, 11+y++); printf("%0.1f $        %0.1f km         %0.1f", temp->cost, temp->distance, temp->traveltime);
+		gotoxy(40, 11 + y); printf("$ %0.1f", temp->cost);
+		gotoxy(58, 11 + y); printf("%0.1f km", temp->distance);
+		gotoxy(74, 11 + y++); printf("%0.1f h", temp->traveltime);
 		puts("  ");
 		temp = temp->next;
 	}
@@ -184,10 +205,12 @@ void ConfirmUI() {
 	}
 	char Check[2] = { 0, };
 	gotoxy(3, 10); printf("예매하시겠습니까? (y/n)"); scanf("%s", Check);
+	while (getchar() != '\n'); // 버퍼초기화
 	switch (Check[0]) {
 	case 'y':
 	case'Y':
 		// RT table 에 추가하기
+		//Route_head free하기
 		ReservationSuccessUI();
 		break;
 	case 'n':
@@ -237,10 +260,14 @@ void CheckAllUI() {
 	ScreenPrint(4, 4, "All the Resev Info");
 }
 
+
+
 void init() { // 시스템 초기화 단계
 	Stage = MAIN;
 	MoveBar = 2;
+
 	// 그래프 초기화 =========================================
+	
 	GraphInit(&Graph_Head, 15); 
 	AddEdge(&Graph_Head, a,b); AddEdge(&Graph_Head, a,c);
 	AddEdge(&Graph_Head, a,o); AddEdge(&Graph_Head, b,g);
@@ -252,6 +279,7 @@ void init() { // 시스템 초기화 단계
 	AddEdge(&Graph_Head, i, h); AddEdge(&Graph_Head, i, n);
 	AddEdge(&Graph_Head, k, j); AddEdge(&Graph_Head, k ,m);
 	AddEdge(&Graph_Head, m, n); AddEdge(&Graph_Head, j, n);
+	
 	// ====================================================
 }
 
@@ -296,7 +324,7 @@ int main(void) {
 	ScreenInit();
 	init(); // 초기화
 	int nKey;
-	while (1) {
+		while (1) {
 		switch (Stage) {
 		case RESERVATION:
 			ScreenRelease(); // 입력을 받기 위한 screen release
