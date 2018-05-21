@@ -18,11 +18,14 @@ void RNodeInsert(Rnode_ptr *head, Rnode_ptr new) {
 	}
 }
 
-void ShowAllRoutes(int StartPos, int DestPos, char *id, int *level, Rnode_ptr Route_head) {
+void ShowAllRoutes(Rnode_ptr Route_head) {
+	int DestPos = Route_head->DestPos;
 	//ScreenClearFunc();
 	int i = 0;
+	int RouteNum = 1;
 	while (Route_head != NULL) {
 		i = 0;
+		printf("   %d. ", RouteNum++);
 		while (1) {
 			printf("%c ", Route_head->Route[i]+97);
 			if (Route_head->Route[i++] == DestPos)

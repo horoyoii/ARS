@@ -14,7 +14,7 @@
 #include"Graph.h"
 #include"SelectRoutes.h"
 #include"gStack.h"
-
+#include"string.h"
 
 #define LEFT 75 
 #define RIGHT 77 
@@ -32,10 +32,12 @@ typedef enum _SEATLEVEL{
 RTnode_ptr ReserveTable_Head;
 // Graph의 리스트를 가지는 Head 포인터
 Graph Graph_Head;
+// 탐색된 모든 경로를 가지고 있는 Head 포인터
+Rnode_ptr Route_head = NULL;
 
 // 인터페이스 단계 구성
 typedef enum _STAGE {
-	MAIN, RESERVATION, CHECKandCANCEL, CHANGE, INFO, CHECKALL
+	MAIN, RESERVATION, SELECT, CHECKandCANCEL, CHANGE, INFO, CHECKALL
 // 메인화면, 1)예약하기, 2) 확인및취소        3) 변경     4) 정보  5) 모든 예약현황
 }STAGE;
 STAGE Stage;
@@ -67,17 +69,21 @@ void SelectBAR(int Move) {
 //========================================================================
 // 입력 fucntion
 void ReservInput(char *StartPos, char *DestPos, char *id, SeatLevel *level) {
-	gotoxy(10, 5); fgets(StartPos, 2, stdin);
+	gotoxy(11, 5); fgets(StartPos, 2, stdin);
 	while (getchar() != '\n');
-	gotoxy(10, 6); fgets(DestPos, 2, stdin);
+	gotoxy(11, 6); fgets(DestPos, 2, stdin);
 	while (getchar() != '\n');
-	gotoxy(10, 7); scanf("%[^\n]", id);
+	gotoxy(11, 7); scanf("%[^\n]", id);
 	while (getchar() != '\n');
-	gotoxy(15, 8); scanf("%d", &level);
+	gotoxy(16, 8); scanf("%d", &level);
 	while (getchar() != '\n');
 }
 
 // 예약하기 UI
+int GlobalStartPos;
+int GlobalDestPos;
+char Globalid[100];
+SeatLevel GlobalLevel;
 void ReservationUI() {
 	char StartPosC[2];
 	char DestPosC[2];
@@ -87,38 +93,112 @@ void ReservationUI() {
 	RTnode_ptr newNode; // 시작지, 도착지, 선택된 경로, id, 비용, 거리, 가격 을 담고 있는 노드
 
 	ScreenClearFunc();
-	gotoxy(2, 4); printf("예약하기");
-	gotoxy(2, 5); printf("출발지 : ");
-	gotoxy(2, 6); printf("도착지 : ");
-	gotoxy(2, 7); printf("ID : ");
-	gotoxy(2, 8); printf("Seat Level : ");
+	gotoxy(3, 1); printf("[예약하기] - "); textcolor(10); printf("[정보입력]"); textcolor(15); printf(" - [경로선택] - 확인 ");
+	gotoxy(3, 5); printf("출발지 : ");
+	gotoxy(3, 6); printf("도착지 : ");
+	gotoxy(3, 7); printf("ID : ");
+	gotoxy(3, 8); printf("Seat Level : ");
 
 	ReservInput(StartPosC, DestPosC, id, &level); // 입력받기
 	// 형변환
 	int StartPos = StartPosC[0] - 97;
 	int DestPos = DestPosC[0] - 97;
-
+	GlobalStartPos = StartPos;
+	GlobalDestPos = DestPos;
+	GlobalLevel = level;
+	strcpy(Globalid, id);
 	gStack stack;
 	gStackInit(&stack);
 	int CheckArr[15] = { 0, };
-	//ShowGraphStatus(&Graph_Head);
-	Rnode_ptr Route_head = NULL;
+
+	//Rnode_ptr Route_head = NULL;
 
 	// 모든 경로 탐색 후 Route_head에 연결
 	DFS(&Graph_Head, StartPos, DestPos, &stack, CheckArr, &Route_head);
 
-	// 모든 경로 display
-	ShowAllRoutes(StartPos, DestPos, id, &DestPos, Route_head);
+	// 모든 경로 출력 & 선택 Display 로 넘어가기
+	
 
-	// 경로 하나 select
-
-
-
-
-
-
-	Sleep(15000);
+	
 }
+
+void SelectUI() {
+	// 모든 경로 display
+	ScreenClearFunc();
+	//gotoxy(3, 1); printf("[예약하기] - [정보입력] - [경로선택] - [확인] ");
+	gotoxy(3, 1); printf("[예약하기] - "); printf("[정보입력] - "); textcolor(10); printf("[경로선택]"); textcolor(15); printf(" - [확인]");
+	gotoxy(2, 3); printf("출발 : [ %c ]  도착 : [ %c ] ", GlobalStartPos+97, GlobalDestPos+97);
+	gotoxy(2, 4); printf("id : %s    등급 : %d ", Globalid, GlobalLevel);
+	gotoxy(2, 9); printf("경로"); gotoxy(40, 9); printf("가격           거리");
+	gotoxy(0, 11);
+	int i = 0;
+	int RouteNum = 1;
+	Rnode_ptr temp = Route_head;
+	while (temp != NULL) {
+		i = 0;
+		printf("   %d. ", RouteNum++);
+		while (1) {
+			printf("%c ", temp->Route[i] + 97);
+			if (temp->Route[i++] == GlobalDestPos)
+				break;
+		}
+		puts("  ");
+		temp = temp->next;
+	}
+	int SelectOne;
+	gotoxy(2, 7); printf("경로선택 : "); scanf("%d", &SelectOne);
+	for (int j = 0; j < SelectOne-1; j++) { // 선택된 경로를 찾는다.
+		Route_head = Route_head->next;
+	}
+
+
+}
+
+void ReservationSuccessUI() {
+	ScreenClearFunc();
+	gotoxy(0, 0); printf(" ");
+	gotoxy(5, 5); printf("예매되었습니다.");
+
+}
+void ReservationFailUI() {
+	ScreenClearFunc();
+	gotoxy(0, 0); printf(" ");
+	gotoxy(5, 5); printf("취소되었습니다.");
+
+}
+
+void ConfirmUI() {
+	ScreenClearFunc();
+	gotoxy(0, 0); printf(" ");
+	gotoxy(3, 1); printf("[예약하기] - "); printf("[정보입력] - ");printf("[경로선택] - "); textcolor(10); printf("[확인]"); textcolor(15);
+	gotoxy(3, 3); printf("출발 : %c", GlobalStartPos+97);
+	gotoxy(3, 4); printf("도착 : %c", GlobalDestPos+97);
+	gotoxy(3, 5); printf("id : %s", Globalid);
+	gotoxy(3, 6); printf("가격 : ");
+	gotoxy(3, 8); printf("경로 : ");
+	int i = 0;
+	while (1) {
+		printf("%c ", Route_head->Route[i] + 97);
+		if (Route_head->Route[i++] == GlobalDestPos)
+			break;
+	}
+	char Check[2] = { 0, };
+	gotoxy(3, 10); printf("예매하시겠습니까? (y/n)"); scanf("%s", Check);
+	switch (Check[0]) {
+	case 'y':
+	case'Y':
+		// RT table 에 추가하기
+		ReservationSuccessUI();
+		break;
+	case 'n':
+	case 'N':
+		ReservationFailUI();
+		break;
+	}
+	Sleep(3000);
+}
+
+
 
 //========================================================================
 
@@ -190,6 +270,8 @@ void Render() {
 		break;
 	case RESERVATION:
 		break;
+	case SELECT:
+		break;
 	case CHECKandCANCEL:
 		break;
 	case CHANGE:
@@ -218,7 +300,9 @@ int main(void) {
 		switch (Stage) {
 		case RESERVATION:
 			ScreenRelease(); // 입력을 받기 위한 screen release
-			ReservationUI();
+			ReservationUI(); // 예약정보 입력받기
+			SelectUI();		// 선택하기
+			ConfirmUI();     // 예약확인하기
 			Stage = MAIN;
 			ScreenInit(); // Screen restart
 			break;

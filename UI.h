@@ -9,3 +9,5 @@
 void gotoxy(int x, int y);
 
 void ScreenClearFunc();
+
+void textcolor(int color_number);
