@@ -36,5 +36,3 @@ int gLNext(glist_ptr plist, Data *data);
 // cur의 position을 앞당긴다.
 // gLFirst로 cur을 세팅 후 사용한다.
 
-// 노드 삭제하기
-Data gLRemove(glist_ptr plist);

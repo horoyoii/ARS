@@ -18,14 +18,14 @@ typedef struct _GRAPH {
 // 그래프 초기화
 void GraphInit(graph_ptr pg, int nv);
 
-// 그래프의 리소스 해제
-void GraphDestroy(graph_ptr pg);
-
 // 간선 추가
 void AddEdge(graph_ptr pg, int fromV, int toV);
 
 // 간선의 정보 출력
 void ShowGraphStatus(graph_ptr pg);
 
+//  DFS 를 통한 모든 경로 탐색
 void DFS(graph_ptr pg, int startV, int GoalV, gstack_ptr gStack, int *CheckArr, Rnode_ptr *ptr);
+
+// 탐색된 모든 경로들에 대한 비용, 거리, Travel time을 추가하는 함수
 void AddCostDisTime(graph_ptr pg, Rnode_ptr *Route_head, int DestPos);
