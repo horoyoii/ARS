@@ -1,5 +1,5 @@
-# Air/lineR/eserv/ati/onSyst/em
-목표 : A/irline Rese/rvat/ion Sy/stem 
+# Airline Reservation System
+목표 : Airline Reservation System 
 
 요인 : flight number, flight time, seat level, seat number, ticket price, travel time etc.
 
